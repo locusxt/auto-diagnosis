@@ -37,7 +37,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'diagnosis',
+    'usermanager',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -56,7 +58,7 @@ ROOT_URLCONF = 'auto_diagnosis.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,12 +115,12 @@ os.path.join(BASE_DIR, 'templates'),
 APPEND_SLASH = True
 
 ## To support visiting to static files
-APP_PATH=os.path.dirname(os.path.dirname(__file__))  
+APP_PATH=os.path.dirname(os.path.dirname(__file__))
 
-STATICFILES_DIRS = (  
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".  
-    # Always use forward slashes, even on Windows.  
-    # Don't forget to use absolute paths, not relative paths.  
-    os.path.join(APP_PATH,'static').replace('\\','/'),  
-)  
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(APP_PATH,'static').replace('\\','/'),
+)
 ##
