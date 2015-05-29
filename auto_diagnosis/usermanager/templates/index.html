@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %} 首页 {% endblock %}
+
+
+
+{% block content %}
+
+<div class="jumbotron">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-7">
+            <h1>Auto Diagnosis!(demo)</h1>
+            <p>
+                <br />
+                在线自助诊断系统，足不出户看医生。
+                <br />
+                <small><strong>注意：本系统结果仅供参考</strong></small>
+            </p>
+            <br />
+            <br />
+            <br />
+            <p><a class="btn btn-primary btn-lg" href="#" role="button">在线问诊</a></p>
+            <br />
+            <br />
+            </div>
+            <div class="col-sm-5">
+                <img src="/static/imgs/robot.jpg" alt="fail to init" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% include "footer.html" %}
+
+{% endblock %}
