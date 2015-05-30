@@ -22,6 +22,8 @@ def get_modules(request):
 		return HttpResponse("Not Ajax Post")
 	d = json.loads(request.body)
 	print(d)
-	response_data = {'questions' : [{'question' : 'hello?', 'options' : ['a', 'b', 'c']},{'question' : 'world?', 'options' : ['e', 'f', 'g']}]}
+	response_data = {'questions' : []}
+	for i in range(20):
+		response_data['questions'].append({'question' : 'hello?', 'options' : ['a', 'b', 'c']})
 	#response_data = {'questions' : 'haha'}
 	return HttpResponse(json.dumps(response_data), content_type="application/json")
