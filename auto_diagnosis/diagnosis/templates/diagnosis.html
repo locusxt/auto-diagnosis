@@ -4,13 +4,46 @@
 
 {% block head%}
 <script src="/static/basic_js/jsrender.min.js"></script>
+<script type="text/javascript">
+    var data_rec = {};
+
+
+    function tmpl_render_html(tmpl, target, d){
+        var html = $(tmpl).render(d);
+        $(target).html(html);
+    }
+
+    function ajax_post_json(target, json){
+        $.ajax({
+          type: 'POST',
+          url: target,
+          data: JSON.stringify (json), // or JSON.stringify ({name: 'jonas'}),
+          //success: function(d) { alert('data: ' + d); },
+          contentType: "application/json",
+          dataType: 'text'
+        });
+    }
+
+    function get_ms_states(){
+        $.getJSON("ajax/get_states/", function(json){
+            data_rec['states'] = json['states'];
+            //alert(json['name']);
+            tmpl_render_html('#ms_tmpl', '#main', data_rec);
+            $(':checkbox').radiocheck();
+        });
+    }
+</script>
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
-    <div id="main">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div id="main">
 
+            </div>
+        </div>
     </div>
 </div>
 
@@ -23,8 +56,26 @@
 </script>
 {% endverbatim %}
 
+{# 基于症状推荐模块的模板 #}
+{% verbatim %}
+<script id="ms_tmpl" type="text/x-jsrender">
+    <div class="col-sm-8 col-sm-offset-2">
+        <small><h1>勾选以下符合的症状</h1></small>
+        <br />
+        <br />
+        <div>
+            {{for states}}
+                <label class="checkbox col-sm-3" for="q{{:#index}}">
+                <input type="checkbox" value="" id="q{{:#index}}">
+                    {{:#data}}
+                </label>
+            {{/for}}
+            
+        </div>
+    </div>
+</script>
+{% endverbatim %}
 
 
 {% include "footer.html" %}
-
 {% endblock %}
