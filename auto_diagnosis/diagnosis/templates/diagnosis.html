@@ -47,7 +47,7 @@
 		  type: 'POST',
 		  url: "ajax/get_modules/",
 		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
-		  success: function(d) { console.log(d); },
+		  complete: function(d) { d = eval("("+d.responseText+")"); data_rec['questions'] = d['questions'];},
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
