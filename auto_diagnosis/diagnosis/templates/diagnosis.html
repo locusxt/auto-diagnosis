@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %} 在线问诊 {% endblock %}
+
+{% block head%}
+<script src="/static/basic_js/jsrender.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div id="main">
+
+    </div>
+</div>
+
+{# 加载中的模板 #}
+{% verbatim %}
+<script id="load_tmpl" type="text/x-jsrender">
+    <div class="jumbotron">
+        <h1>Loading...</h1>
+    </div>
+</script>
+{% endverbatim %}
+
+
+
+{% include "footer.html" %}
+
+{% endblock %}

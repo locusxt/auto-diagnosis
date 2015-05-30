@@ -10,6 +10,8 @@
 		<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 		<link href="/static/flat_ui/dist/css/vendor/bootstrap.min.css" rel="stylesheet">
 		<link href="/static/flat_ui/dist/css/flat-ui.min.css" rel="stylesheet">
+        <script src="/static/flat_ui/dist/js/vendor/video.js"></script>
+        <script src="/static/flat_ui/dist/js/flat-ui.min.js"></script>
 		{% block head %}{% endblock %}
 	</head>
 	<body style="padding:0px; background-color:#f4f6f4">
@@ -23,14 +25,14 @@
 			  <span class="icon-bar"></span>
 			  <span class="icon-bar"></span>
 			</button>
-			<a class="navbar-brand" href="#">Logo</a>
+			<a class="navbar-brand" href="/">Logo</a>
 		</div>
 			<div id="navbar" class="navbar-collapse collapse">
 					{%block navigation_left%}
                     <ul class="nav navbar-nav navbar-left">
-                       <li><a href="">问诊</a></li>
+                       <li><a href="{% url 'diagnosis:test' %}">在线问诊</a></li>
                         <li><a href="">历史记录</a></li>
-                            <li><a href="">帮助</a></li>
+                            <li><a href="">使用指南</a></li>
                     </ul>
 					{%endblock%}
 					{%block navigation_right%}
@@ -47,6 +49,14 @@
 		{% endblock %}
 		{% block content %}
 		{% endblock %}
+        <!-- /.container -->
+        <!--script src="/static/flat_ui/dist/js/vendor/jquery.min.js"></script-->
+        <script src="/static/flat_ui/dist/js/flat-ui.min.js"></script>
+        <script src="/static/flat_ui/docs/assets/js/application.js"></script>
+
+        <script>
+        videojs.options.flash.swf = "/static/flat_ui/dist/js/vendors/video-js.swf"
+        </script>
 
 	</body>
 </html>

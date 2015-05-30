@@ -22,6 +22,11 @@ from usermanager import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^static/(?P<path>.*)$','django.views.static.serve', {'document_root':settings.STATICFILES_DIRS, 'show_indexes': True}),
-    url(r'^index',views.index),
+    url(r'^static/(?P<path>.*)$','django.views.static.serve', #static files
+        {'document_root':settings.STATICFILES_DIRS, 'show_indexes': True}),
+
+    url(r'^$',views.index), #home page
+    url(r'^index',views.index), #index
+
+    url(r'^diagnosis/', include("diagnosis.urls",namespace='diagnosis', app_name='diagnosis')),
 ]
