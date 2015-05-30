@@ -5,77 +5,112 @@
 {% block head%}
 <script src="/static/basic_js/jsrender.min.js"></script>
 <script type="text/javascript">
-    var data_rec = {};
+	var data_rec = {};
+	var ms_res = {};
 
 
-    function tmpl_render_html(tmpl, target, d){
-        var html = $(tmpl).render(d);
-        $(target).html(html);
-    }
+	function tmpl_render_html(tmpl, target, d){
+		var html = $(tmpl).render(d);
+		$(target).html(html);
+	}
 
-    function ajax_post_json(target, json){
-        $.ajax({
-          type: 'POST',
-          url: target,
-          data: JSON.stringify (json), // or JSON.stringify ({name: 'jonas'}),
-          //success: function(d) { alert('data: ' + d); },
-          contentType: "application/json",
-          dataType: 'text'
-        });
-    }
+	function ajax_post_json(target, json){
+		$.ajax({
+		  type: 'POST',
+		  url: target,
+		  data: JSON.stringify (json), // or JSON.stringify ({name: 'jonas'}),
+		  //success: function(d) { alert('data: ' + d); },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
 
-    function get_ms_states(){
-        $.getJSON("ajax/get_states/", function(json){
-            data_rec['states'] = json['states'];
-            //alert(json['name']);
-            tmpl_render_html('#ms_tmpl', '#main', data_rec);
-            $(':checkbox').radiocheck();
-        });
-    }
+	function get_ms_states(){
+		$.getJSON("ajax/get_states/", function(json){
+			data_rec['states'] = json['states'];
+			ms_res['check'] = [];
+			for (var i = 0; i < json['states'].length; i++){
+				ms_res['check'].push(0);
+			}
+			//alert(json['name']);
+			tmpl_render_html('#ms_tmpl', '#main', data_rec);
+			$(':checkbox').radiocheck();
+		});
+	}
+
+	function switch_ms_check(id){
+		ms_res['check'][id] = 1 - ms_res['check'][id];
+	}
+
+	function send_ms_checks(){
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_modules/",
+		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
+		  success: function(d) { console.log(d); },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
 </script>
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
-    <div class="panel panel-default">
-        <div class="panel-body">
-            <div id="main">
+	<div class="panel panel-default col-sm-10 col-sm-offset-1">
+		<div class="panel-body">
+			<div id="main">
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </div>
 
 {# 加载中的模板 #}
 {% verbatim %}
 <script id="load_tmpl" type="text/x-jsrender">
-    <div class="jumbotron">
-        <h1>Loading...</h1>
-    </div>
+	<div class="jumbotron">
+		<h1>Loading...</h1>
+	</div>
 </script>
 {% endverbatim %}
 
 {# 基于症状推荐模块的模板 #}
 {% verbatim %}
 <script id="ms_tmpl" type="text/x-jsrender">
-    <div class="col-sm-8 col-sm-offset-2">
-        <small><h1>勾选以下符合的症状</h1></small>
-        <br />
-        <br />
-        <div>
-            {{for states}}
-                <label class="checkbox col-sm-3" for="q{{:#index}}">
-                <input type="checkbox" value="" id="q{{:#index}}">
-                    {{:#data}}
-                </label>
-            {{/for}}
-            
-        </div>
-    </div>
+	<div class="col-sm-10 col-sm-offset-1">
+		<small><h1>请勾选符合的症状</h1></small>
+		<div class="alert alert-info" role="alert">认真完成该部分,将有助于我们更好地分析。</div>
+		<br />
+		<div class="row col-sm-10 col-sm-offset-1">
+			{{for states}}
+				<label class="checkbox col-sm-4" for="q{{:#index}}">
+				<input type="checkbox" value="" id="q{{:#index}}" class="ms_check" onclick="switch_ms_check({{:#index}});">
+					{{:#data}}
+				</label>
+			{{/for}}
+		</div>
+		<div class="row col-sm-10 col-sm-offset-1">
+			<br />
+			<br />
+			<br />
+			<a class="btn btn-primary btn-lg" onclick="send_ms_checks();" role="button">提交</a>
+			<br />
+			<br />
+			<br />
+		</div>
+
+	</div>
 </script>
 {% endverbatim %}
 
-
 {% include "footer.html" %}
+
+<script type="text/javascript">
+	tmpl_render_html("#load_tmpl", "#main", data_rec);
+	get_ms_states();
+</script>
+
 {% endblock %}
