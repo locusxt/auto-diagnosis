@@ -23,7 +23,19 @@ def get_modules(request):
 	d = json.loads(request.body)
 	print(d)
 	response_data = {'questions' : []}
-	for i in range(20):
-		response_data['questions'].append({'question' : 'hello?', 'options' : ['a', 'b', 'c']})
+	response_data['questions'].append({'question' : '咳嗽持续天数', 'options' : ['一两天', '一两周', '大于两周']})
+	response_data['questions'].append({'question' : '平均体温', 'options' : ['36-37摄氏度', '38摄氏度', '39摄氏度以上']})
+	response_data['questions'].append({'question' : '头晕的程度', 'options' : ['可以忍受，不影响日程生活', '找不着北', '不能下床']})
 	#response_data = {'questions' : 'haha'}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+@csrf_exempt
+def get_res(request):
+	if not request.is_ajax():
+		return HttpResponse("Not Ajax")
+	if request.method != 'POST':
+		return HttpResponse("Not Ajax Post")
+	d = json.loads(request.body)
+	print(d)
+	response_data = {'diseases' : [{'name':'感冒', 'prob':0.9}, {'name':'支气管炎', 'prob':0.5}, {'name':'肺炎', 'prob':0.3}]}
 	return HttpResponse(json.dumps(response_data), content_type="application/json")

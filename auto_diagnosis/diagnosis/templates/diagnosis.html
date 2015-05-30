@@ -7,6 +7,7 @@
 <script type="text/javascript">
 	var data_rec = {};
 	var ms_res = {};
+	var question_res = {};
 
 
 	function tmpl_render_html(tmpl, target, d){
@@ -47,7 +48,41 @@
 		  type: 'POST',
 		  url: "ajax/get_modules/",
 		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
-		  complete: function(d) { d = eval("("+d.responseText+")"); data_rec['questions'] = d['questions']; tmpl_render_html('#question_tmpl', '#main', data_rec);},
+		  complete: function(d) { 
+		  		d = eval("("+d.responseText+")"); 
+		  		data_rec['questions'] = d['questions']; 
+		  		question_res['option'] = [];
+		  		for (var i = 0; i < d['questions'].length; i++){
+					question_res['option'].push(-1);
+				}
+		  		tmpl_render_html('#question_tmpl', '#main', data_rec);
+		  		$(':radio').radiocheck();
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function switch_option(question, option){
+		question_res['option'][question] = option;
+	}
+
+	function send_question_res(){
+		for (var i = 0; i < question_res['option'].length; i++){
+			if (question_res['option'][i] == -1){
+				alert("请完成所有题目，再提交。");
+				return;
+			}
+		}
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_res/",
+		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+		  		d = eval("("+d.responseText+")"); 
+		  		data_rec['diseases'] = d['diseases']; 
+		  		tmpl_render_html('#res_tmpl', '#main', data_rec);
+		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
@@ -120,22 +155,53 @@
 				<p><strong>{{:#index}}.{{:question}}</strong></p>
 				{{for options ~parentIndex=#index}}
 					<label class="radio" for="q{{:~parentIndex}}{{:#index}}">
-					<input type="radio" class="quest_radio" name="r{{:~parentIndex}}" value="" id="q{{:~parentIndex}}{{:#index}}" data-toggle="radio">
+					<input type="radio" class="quest_radio" name="r{{:~parentIndex}}" value="" id="q{{:~parentIndex}}{{:#index}}" data-toggle="radio" onclick="switch_option({{:~parentIndex}}, {{:#index}});">
 					{{:#data}}
 					</label>
 				{{/for}}
+				<br />
 			{{/for}}
 		</div>
 		<div class="col-sm-10 col-sm-offset-1">
 			<br />
 			<br />
 			<br />
-			<a class="btn btn-primary btn-lg" onclick="" role="button">提交</a>
+			<a class="btn btn-primary btn-lg" onclick="send_question_res();" role="button">提交</a>
 			<br />
 			<br />
 			<br />
 		</div>
 </div>
+</script>
+{% endverbatim %}
+
+{# 展示结果的模板 #}
+{% verbatim %}
+<script id="res_tmpl" type="text/x-jsrender">
+<div class="col-sm-10 col-sm-offset-1">
+	<small><h1>预测结果</h1></small>
+		<div class="alert alert-warning" role="alert">测试结果仅供参考，请及时就医</div>
+		<br />
+		<div class="col-sm-10 col-sm-offset-1">
+			{{for diseases}}
+			<div class="row">
+				<div class="">{{:name}} {{:prob * 100}}%</div>
+				<div class="progress">
+				<div class="progress-bar progress-bar-success" style="width: {{:prob * 100}}%;"></div>
+				</div>
+			</div>
+			{{/for}}
+		</div>
+		<div class="col-sm-10 col-sm-offset-1">
+			<br />
+			<br />
+			<br />
+			<a href="#">More...</a>
+			<br />
+			<br />
+			<br />
+		</div>
+		</div>
 </script>
 {% endverbatim %}
 
