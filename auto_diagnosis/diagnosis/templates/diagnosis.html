@@ -8,6 +8,7 @@
 	var data_rec = {};
 	var ms_res = {};
 	var question_res = {};
+	var choosed_module;
 
 
 	function tmpl_render_html(tmpl, target, d){
@@ -49,19 +50,56 @@
 		  url: "ajax/get_modules/",
 		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
 		  complete: function(d) { 
-		  		d = eval("("+d.responseText+")"); 
-		  		data_rec['questions'] = d['questions']; 
-		  		question_res['option'] = [];
-		  		for (var i = 0; i < d['questions'].length; i++){
-					question_res['option'].push(-1);
-				}
-		  		tmpl_render_html('#question_tmpl', '#main', data_rec);
-		  		$(':radio').radiocheck();
+				d = eval("("+d.responseText+")"); 
+				data_rec['modules'] = d['modules']; 
+				tmpl_render_html('#module_tmpl', '#main', data_rec);
+				//$(':radio').radiocheck();
 		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
 	}
+
+	function choose_module(module_id){
+		choosed_module = data_rec['modules'][module_id];
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_module_questions/",
+		  data: JSON.stringify ({"module" : choosed_module}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['questions'] = d['questions']; 
+				question_res['option'] = [];
+				for (var i = 0; i < d['questions'].length; i++){
+					question_res['option'].push(-1);
+				}
+				tmpl_render_html('#question_tmpl', '#main', data_rec);
+				$(':radio').radiocheck();
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	// function send_ms_checks(){
+	// 	$.ajax({
+	// 	  type: 'POST',
+	// 	  url: "ajax/get_modules/",
+	// 	  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
+	// 	  complete: function(d) { 
+	// 	  		d = eval("("+d.responseText+")"); 
+	// 	  		data_rec['questions'] = d['questions']; 
+	// 	  		question_res['option'] = [];
+	// 	  		for (var i = 0; i < d['questions'].length; i++){
+	// 				question_res['option'].push(-1);
+	// 			}
+	// 	  		tmpl_render_html('#question_tmpl', '#main', data_rec);
+	// 	  		$(':radio').radiocheck();
+	// 	  },
+	// 	  contentType: "application/json",
+	// 	  dataType: 'text'
+	// 	});
+	// }
 
 	function switch_option(question, option){
 		question_res['option'][question] = option;
@@ -74,14 +112,15 @@
 				return;
 			}
 		}
+		question_res['module'] = choosed_module;
 		$.ajax({
 		  type: 'POST',
 		  url: "ajax/get_res/",
-		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
+		  data: JSON.stringify (question_res), // or JSON.stringify ({name: 'jonas'}),
 		  complete: function(d) { 
-		  		d = eval("("+d.responseText+")"); 
-		  		data_rec['diseases'] = d['diseases']; 
-		  		tmpl_render_html('#res_tmpl', '#main', data_rec);
+				d = eval("("+d.responseText+")"); 
+				data_rec['diseases'] = d['diseases']; 
+				tmpl_render_html('#res_tmpl', '#main', data_rec);
 		  },
 		  contentType: "application/json",
 		  dataType: 'text'
@@ -140,6 +179,32 @@
 		</div>
 
 	</div>
+</script>
+{% endverbatim %}
+
+{# 推荐的模块的模板 #}
+{% verbatim %}
+<script id="module_tmpl" type="text/x-jsrender">
+<div class="col-sm-10 col-sm-offset-1">
+	<small><h1>请选择模块</h1></small>
+		<div class="alert alert-info" role="alert">以下是根据症状推荐出的模块</div>
+		<br />
+		<div class="col-sm-10 col-sm-offset-1">
+			{{for modules}}
+				<div class="col-sm-4">
+					<a class="btn btn-primary btn-embossed" onclick="choose_module({{:#index}});" role="button">{{:#data}}</a>
+				</div>
+			{{/for}}
+		</div>
+		<div class="col-sm-10 col-sm-offset-1">
+			<br />
+			<br />
+			<br />
+			<br />
+			<br />
+			<br />
+		</div>
+</div>
 </script>
 {% endverbatim %}
 

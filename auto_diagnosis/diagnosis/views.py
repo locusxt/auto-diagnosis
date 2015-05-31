@@ -22,6 +22,18 @@ def get_modules(request):
 		return HttpResponse("Not Ajax Post")
 	d = json.loads(request.body)
 	print(d)
+	response_data = {'modules' : ['呼吸系统', '消化系统', '血液系统']}
+	#response_data = {'questions' : 'haha'}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+@csrf_exempt
+def get_module_questions(request):
+	if not request.is_ajax():
+		return HttpResponse("Not Ajax")
+	if request.method != 'POST':
+		return HttpResponse("Not Ajax Post")
+	d = json.loads(request.body)
+	print(d)
 	response_data = {'questions' : []}
 	response_data['questions'].append({'question' : '咳嗽持续天数', 'options' : ['一两天', '一两周', '大于两周']})
 	response_data['questions'].append({'question' : '平均体温', 'options' : ['36-37摄氏度', '38摄氏度', '39摄氏度以上']})

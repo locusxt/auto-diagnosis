@@ -5,5 +5,6 @@ urlpatterns = patterns('',
                         url(r'^test/$', views.start_diagnosis, name='test'),
                         url(r'^test/ajax/get_states/$', views.get_states),
                         url(r'^test/ajax/get_modules/$', views.get_modules),
+                        url(r'^test/ajax/get_module_questions/$', views.get_module_questions),
                         url(r'^test/ajax/get_res/$', views.get_res),
 )
