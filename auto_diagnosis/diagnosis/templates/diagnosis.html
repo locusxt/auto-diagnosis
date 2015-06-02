@@ -218,7 +218,7 @@
 {% verbatim %}
 <script id="ms_tmpl" type="text/x-jsrender">
 	<div class="col-sm-10 col-sm-offset-1">
-		<small><h1>请勾选符合的症状</h1></small>
+		<small><h3>请勾选符合的症状</h3></small>
 		<div class="alert alert-info" role="alert">认真完成该部分,将有助于我们更好地分析。</div>
 		<br />
 		<div class="col-sm-10 col-sm-offset-1">
@@ -254,10 +254,10 @@
 <script id="module_tmpl" type="text/x-jsrender">
 <div class="col-sm-10 col-sm-offset-1">
 	<small>
-		<h1>
+		<h3>
 			请选择模块
 			<small><a href="#" onclick="tmpl_render_html('#ms_tmpl', '#main', data_rec);">返回症状选择</a></small>
-		</h1>
+		</h3>
 	</small>
 		<div class="alert alert-info" role="alert">以下是根据症状推荐出的模块</div>
 		<br />
@@ -285,10 +285,10 @@
 <script id="question_tmpl" type="text/x-jsrender">
 <div class="col-sm-10 col-sm-offset-1">
 	<small>
-		<h1>
+		<h3>
 			请完成以下问卷
 			<small><a href="#" onclick="tmpl_render_html('#module_tmpl', '#main', data_rec);">返回模块选择</a></small>
-		</h1>
+		</h3>
 	</small>
 		<div class="alert alert-info" role="alert">认真完成该部分,将有助于我们更好地分析。</div>
 		<br />
@@ -328,10 +328,10 @@
 <script id="res_tmpl" type="text/x-jsrender">
 <div class="col-sm-10 col-sm-offset-1">
 	<small>
-		<h1>
+		<h3>
 			预测结果
 			<small><a href="#" onclick="tmpl_render_html('#question_tmpl', '#main', data_rec);">返回问题回答</a></small>
-		</h1>
+		</h3>
 	</small>
 		<div class="alert alert-warning" role="alert">测试结果仅供参考，请及时就医</div>
 		<br />
@@ -342,11 +342,11 @@
 					{{:name}}&nbsp;&nbsp;&nbsp;{{:prob * 100}}%
 					&nbsp;&nbsp;&nbsp;
 					<a href="#" onclick="change_modal('{{:name}}');" data-toggle="modal" data-target="#myModal">
-						<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+						<span title="详细信息" class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
 					</a>
 					&nbsp;&nbsp;&nbsp;
 					<a href="#" onclick="adv_diagnosis('{{:name}}');">
-						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+						<span title="进一步诊断"  class="glyphicon glyphicon-plus" aria-hidden="true"></span>
 					</a>
 				</div>
 				<div class="progress">
@@ -373,10 +373,10 @@
 <script id="adv_question_tmpl" type="text/x-jsrender">
 <div class="col-sm-10 col-sm-offset-1">
 	<small>
-		<h1>
+		<h3>
 			进一步诊断
 			<small><a href="#" onclick="tmpl_render_html('#res_tmpl', '#main', data_rec);">返回预测结果</a></small>
-		</h1>
+		</h3>
 	</small>
 		<div class="alert alert-info" role="alert">辅助诊断部分需要在医院进行</div>
 		<br />
