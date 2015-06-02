@@ -51,3 +51,14 @@ def get_res(request):
 	print(d)
 	response_data = {'diseases' : [{'name':'感冒', 'prob':0.9}, {'name':'支气管炎', 'prob':0.5}, {'name':'肺炎', 'prob':0.3}]}
 	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+@csrf_exempt
+def get_details(request):
+	if not request.is_ajax():
+		return HttpResponse("Not Ajax")
+	if request.method != 'POST':
+		return HttpResponse("Not Ajax Post")
+	d = json.loads(request.body)
+	print(d)
+	response_data = {'details' : '常见症状，发烧,流鼻涕,咳嗽；常用治疗手段，多读书，多看报，少玩游戏，多睡觉'}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")

@@ -80,26 +80,6 @@
 		});
 	}
 
-	// function send_ms_checks(){
-	// 	$.ajax({
-	// 	  type: 'POST',
-	// 	  url: "ajax/get_modules/",
-	// 	  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
-	// 	  complete: function(d) { 
-	// 	  		d = eval("("+d.responseText+")"); 
-	// 	  		data_rec['questions'] = d['questions']; 
-	// 	  		question_res['option'] = [];
-	// 	  		for (var i = 0; i < d['questions'].length; i++){
-	// 				question_res['option'].push(-1);
-	// 			}
-	// 	  		tmpl_render_html('#question_tmpl', '#main', data_rec);
-	// 	  		$(':radio').radiocheck();
-	// 	  },
-	// 	  contentType: "application/json",
-	// 	  dataType: 'text'
-	// 	});
-	// }
-
 	function switch_option(question, option){
 		question_res['option'][question] = option;
 	}
@@ -126,6 +106,22 @@
 		});
 	}
 
+	function change_modal(disease_name){
+		document.getElementById('myModalLabel').innerHTML=disease_name;
+		document.getElementById('myModalBody').innerHTML='Loading...';
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_details/",
+		  data: JSON.stringify ({'disease':disease_name}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				document.getElementById('myModalBody').innerHTML=d['details'];		  
+			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
 </script>
 {% endblock %}
 
@@ -139,6 +135,24 @@
 			</div>
 		</div>
 	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body" id="myModalBody">
+        Loading...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {# 加载中的模板 #}
@@ -276,7 +290,10 @@
 		<div class="col-sm-10 col-sm-offset-1">
 			{{for diseases}}
 			<div class="row">
-				<div class="">{{:name}} {{:prob * 100}}%</div>
+				<div class="">
+					{{:name}} {{:prob * 100}}%
+					<a href="#" onclick="change_modal('{{:name}}');" data-toggle="modal" data-target="#myModal">详细信息</a>
+				</div>
 				<div class="progress">
 				<div class="progress-bar progress-bar-success" style="width: {{:prob * 100}}%;"></div>
 				</div>

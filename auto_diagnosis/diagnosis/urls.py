@@ -7,4 +7,5 @@ urlpatterns = patterns('',
                         url(r'^test/ajax/get_modules/$', views.get_modules),
                         url(r'^test/ajax/get_module_questions/$', views.get_module_questions),
                         url(r'^test/ajax/get_res/$', views.get_res),
+                        url(r'^test/ajax/get_details/$', views.get_details),
 )
