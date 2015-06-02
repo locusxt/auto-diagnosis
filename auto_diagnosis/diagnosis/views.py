@@ -60,5 +60,33 @@ def get_details(request):
 		return HttpResponse("Not Ajax Post")
 	d = json.loads(request.body)
 	print(d)
-	response_data = {'details' : '常见症状，发烧,流鼻涕,咳嗽；常用治疗手段，多读书，多看报，少玩游戏，多睡觉'}
+	response_data = {'details' : '常见症状，发烧，流鼻涕，咳嗽；常用治疗手段，多读书，多看报，少玩游戏，多睡觉'}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+@csrf_exempt
+def get_disease_questions(request):
+	if not request.is_ajax():
+		return HttpResponse("Not Ajax")
+	if request.method != 'POST':
+		return HttpResponse("Not Ajax Post")
+	d = json.loads(request.body)
+	print(d)
+	response_data = {'adv_questions' : []}
+	response_data['adv_questions'].append({'question' : '白细胞数量', 'options' : ['找不到', '100个', '200个', '很多个']})
+	response_data['adv_questions'].append({'question' : '红细胞数量', 'options' : ['找不到', '100个', '200个', '很多个']})
+	response_data['adv_questions'].append({'question' : '血小板数量', 'options' : ['找不到', '100个', '200个', '很多个']})
+	#response_data = {'questions' : 'haha'}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+
+@csrf_exempt
+def get_treatment(request):
+	if not request.is_ajax():
+		return HttpResponse("Not Ajax")
+	if request.method != 'POST':
+		return HttpResponse("Not Ajax Post")
+	d = json.loads(request.body)
+	print(d)
+	response_data = {'treatment' : '你需要一碗包治百病的板蓝根'}
 	return HttpResponse(json.dumps(response_data), content_type="application/json")

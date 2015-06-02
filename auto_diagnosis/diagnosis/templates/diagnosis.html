@@ -9,6 +9,8 @@
 	var ms_res = {};
 	var question_res = {};
 	var choosed_module;
+	var choosed_disease;
+	var adv_question_res = {};
 
 
 	function tmpl_render_html(tmpl, target, d){
@@ -117,6 +119,52 @@
 				d = eval("("+d.responseText+")"); 
 				document.getElementById('myModalBody').innerHTML=d['details'];		  
 			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function adv_diagnosis(disease_name){
+		choosed_disease = disease_name;
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_disease_questions/",
+		  data: JSON.stringify ({'module':question_res['module'], 'option':question_res['option'], 'disease': choosed_disease}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['adv_questions'] = d['adv_questions']; 
+				adv_question_res['option'] = [];
+				for (var i = 0; i < d['adv_questions'].length; i++){
+					adv_question_res['option'].push(-1);
+				}
+				tmpl_render_html('#adv_question_tmpl', '#main', data_rec);	  
+			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function adv_switch_option(question, option){
+		adv_question_res['option'][question] = option;
+	}
+
+	function send_adv_question_res(){
+		for (var i = 0; i < adv_question_res['option'].length; i++){
+			if (adv_question_res['option'][i] == -1){
+				alert("请完成所有题目，再提交。");
+				return;
+			}
+		}
+		adv_question_res['disease'] = choosed_disease;
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_treatment/",
+		  data: JSON.stringify (adv_question_res), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['treatment'] = d['treatment']; 
+				document.getElementById('diagnosis_res').value=d['treatment'];
+		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
@@ -291,8 +339,15 @@
 			{{for diseases}}
 			<div class="row">
 				<div class="">
-					{{:name}} {{:prob * 100}}%
-					<a href="#" onclick="change_modal('{{:name}}');" data-toggle="modal" data-target="#myModal">详细信息</a>
+					{{:name}}&nbsp;&nbsp;&nbsp;{{:prob * 100}}%
+					&nbsp;&nbsp;&nbsp;
+					<a href="#" onclick="change_modal('{{:name}}');" data-toggle="modal" data-target="#myModal">
+						<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+					</a>
+					&nbsp;&nbsp;&nbsp;
+					<a href="#" onclick="adv_diagnosis('{{:name}}');">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+					</a>
 				</div>
 				<div class="progress">
 				<div class="progress-bar progress-bar-success" style="width: {{:prob * 100}}%;"></div>
@@ -312,6 +367,49 @@
 		</div>
 </script>
 {% endverbatim %}
+
+{# 进一步诊断的具体问题的模板 #}
+{% verbatim %}
+<script id="adv_question_tmpl" type="text/x-jsrender">
+<div class="col-sm-10 col-sm-offset-1">
+	<small>
+		<h1>
+			进一步诊断
+			<small><a href="#" onclick="tmpl_render_html('#res_tmpl', '#main', data_rec);">返回预测结果</a></small>
+		</h1>
+	</small>
+		<div class="alert alert-info" role="alert">辅助诊断部分需要在医院进行</div>
+		<br />
+		<div class="col-sm-10 col-sm-offset-1">
+			{{for adv_questions}}
+				<p><strong>{{:#index}}.{{:question}}</strong></p>
+				{{for options ~parentIndex=#index}}
+					<label class="radio" for="adv_q{{:~parentIndex}}{{:#index}}">
+					<input type="radio" class="quest_radio" name="adv_r{{:~parentIndex}}" value="" id="adv_q{{:~parentIndex}}{{:#index}}" data-toggle="radio" onclick="adv_switch_option({{:~parentIndex}}, {{:#index}});">
+					{{:#data}}
+					</label>
+				{{/for}}
+				<br />
+			{{/for}}
+		</div>
+		<div class="col-sm-10 col-sm-offset-1">
+			<br />
+			<a class="btn btn-primary btn-lg" onclick="send_adv_question_res();" role="button">生成诊断建议</a>
+			<br />
+			<br />
+			<input id="diagnosis_res" type="text" class="form-control" placeholder="诊断建议" aria-describedby="sizing-addon1">
+			<br />
+		</div>
+</div>
+	<script type="text/javascript">
+		for (var i = 0; i < question_res['option'].length; i++){
+			question_res['option'][i] = -1;
+		}
+		$(':radio').radiocheck();
+	</script>
+</script>
+{% endverbatim %}
+
 
 {% include "footer.html" %}
 
