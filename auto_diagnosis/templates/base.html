@@ -47,8 +47,6 @@
 			</nav>
 
 		{% endblock %}
-		{% block content %}
-		{% endblock %}
         <!-- /.container -->
         <!--script src="/static/flat_ui/dist/js/vendor/jquery.min.js"></script-->
         <script src="/static/flat_ui/dist/js/flat-ui.min.js"></script>
@@ -59,6 +57,9 @@
         <script src="/static/flat_ui/js/custom_radio.js"></script>
         <!-- <script src="/static/flat_ui/js/bootstrap-tooltip.js"></script> -->
         <script src="/static/flat_ui/js/jquery.tagsinput.js"></script>
+        
+		{% block content %}
+		{% endblock %}
 
         <script>
         videojs.options.flash.swf = "/static/flat_ui/dist/js/vendors/video-js.swf";
