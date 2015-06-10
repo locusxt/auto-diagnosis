@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %} 在线问诊 {% endblock %}
+
+{% block body %}style="padding:0px; background-color:#f4f6f4"{% endblock %}
+
+{% block head%}
+<script src="/static/basic_js/jsrender.min.js"></script>
+<script type="text/javascript">
+	var data_rec = {};
+	var ms_res = {};
+	var question_res = {};
+	var choosed_module;
+	var choosed_disease;
+	var adv_question_res = {};
+	var basic_info = {};
+
+
+	function tmpl_render_html(tmpl, target, d){
+		var html = $(tmpl).render(d);
+		$(target).html(html);
+	}
+
+	function ajax_post_json(target, json){
+		$.ajax({
+		  type: 'POST',
+		  url: target,
+		  data: JSON.stringify (json), // or JSON.stringify ({name: 'jonas'}),
+		  //success: function(d) { alert('data: ' + d); },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function get_ms_states(){
+		$.getJSON("ajax/get_states/", function(json){
+			data_rec['states'] = json['states'];
+			// ms_res['check'] = [];
+			// for (var i = 0; i < json['states'].length; i++){
+			// 	ms_res['check'].push(0);
+			// }
+			// //alert(json['name']);
+			// tmpl_render_html('#ms_tmpl', '#main', data_rec);
+		});
+	}
+
+	function switch_ms_check(id){
+		ms_res['check'][id] = 1 - ms_res['check'][id];
+	}
+
+	function send_ms_checks(){
+		$('#predict_result').html('Loading...');
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_modules/",
+		  data: JSON.stringify (ms_res), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['modules'] = d['modules']; 
+				modules = d['modules'];
+				$('#predict_result').html('');
+				for (var i = 0; i < modules.length; ++i){
+					$('#predict_result').append(
+						"<li><a onclick=\"$('#search_module').val('" + modules[i] + "');\">" + modules[i] + "</a></li>"
+					);
+				}
+				// tmpl_render_html('#module_tmpl', '#main', data_rec);
+				//$(':radio').radiocheck();
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function choose_module(module_id){
+		choosed_module = data_rec['modules'][module_id];
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_module_questions/",
+		  data: JSON.stringify ({"module" : choosed_module}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['questions'] = d['questions']; 
+				question_res['option'] = [];
+				for (var i = 0; i < d['questions'].length; i++){
+					question_res['option'].push(-1);
+				}
+				tmpl_render_html('#question_tmpl', '#main', data_rec);
+				
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function switch_option(question, option){
+		question_res['option'][question] = option;
+	}
+
+	function send_question_res(){
+		for (var i = 0; i < question_res['option'].length; i++){
+			if (question_res['option'][i] == -1){
+				alert("请完成所有题目，再提交。");
+				return;
+			}
+		}
+		question_res['module'] = choosed_module;
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_res/",
+		  data: JSON.stringify (question_res), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['diseases'] = d['diseases']; 
+				tmpl_render_html('#res_tmpl', '#main', data_rec);
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function change_modal(disease_name){
+		document.getElementById('myModalLabel').innerHTML=disease_name;
+		document.getElementById('myModalBody').innerHTML='Loading...';
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_details/",
+		  data: JSON.stringify ({'disease':disease_name}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				document.getElementById('myModalBody').innerHTML=d['details'];		  
+			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function adv_diagnosis(disease_name){
+		choosed_disease = disease_name;
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_disease_questions/",
+		  data: JSON.stringify ({'module':question_res['module'], 'option':question_res['option'], 'disease': choosed_disease}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['adv_questions'] = d['adv_questions']; 
+				adv_question_res['option'] = [];
+				for (var i = 0; i < d['adv_questions'].length; i++){
+					adv_question_res['option'].push(-1);
+				}
+				tmpl_render_html('#adv_question_tmpl', '#main', data_rec);	  
+			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function adv_switch_option(question, option){
+		adv_question_res['option'][question] = option;
+	}
+
+	function send_adv_question_res(){
+		for (var i = 0; i < adv_question_res['option'].length; i++){
+			if (adv_question_res['option'][i] == -1){
+				alert("请完成所有题目，再提交。");
+				return;
+			}
+		}
+		adv_question_res['disease'] = choosed_disease;
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_treatment/",
+		  data: JSON.stringify (adv_question_res), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['treatment'] = d['treatment']; 
+				document.getElementById('diagnosis_res').value=d['treatment'];
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	/*
+	 * 该函数用于更新用户基本信息的显示
+	 */
+	function update_basic_info(){
+		name = $('#input_name').val();
+		gender = $("input:radio[name='input_gender'][checked]").val()
+		age = $('#input_age').val();
+		office = $('#input_office').val();
+		id = $('#input_id').val();
+
+		$('#patient_name').html(name);
+		$('#patient_gender').html(gender);
+		$('#patient_age').html(age);
+		$('#case_office').html(office);
+		$('#case_id').html(id);
+	}
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container bs-docs-container">
+	<div class="row">
+		<div class="panel panel-default col-md-9">
+			<div class="panel-body" role="main">
+				<div id="basic_info_section" class="bs-docs-section">
+					<h4 id="basic_info_title" class="page-header">基本信息</h4>
+					<div>
+						<p>
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							<strong>姓名：</strong><span id="patient_name">&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+							<strong>性别：</strong><span id="patient_gender">&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+							<strong>年龄：</strong><span id="patient_age">&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+							<strong>科室：</strong><span id="case_office">&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+							<strong>ID号：</strong><span id="case_id">&nbsp;&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							<a href="" data-toggle="modal" data-target="#basic_info_modal"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+							<br />
+						</p>
+					</div>
+					<br />
+					<div id="patient_log" class="form-horizontal">
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>既往病史：</strong></label>
+							<div class="col-md-8">
+								<div id="past_log_show">
+									<p id="past_log"></p>
+									<a id="past_log_edit" onclick="$('#past_log_show').hide(); $('#past_log_update').show()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+								</div>
+								
+								<div id="past_log_update" style="display:none;">
+									<textarea rows="3" id="input_past_log" class="form-control" placeholder="既往病史" aria-describedby="sizing-addon1"></textarea>
+									<a id="past_log_confirm" onclick="$('#past_log').html($('#input_past_log').val()); $('#past_log_show').show(); $('#past_log_update').hide()"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="past_log_cancel" onclick=" $('#past_log_show').show(); $('#past_log_update').hide()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="past_log_cancel" onclick="$('#input_past_log').val(''); $('#past_log').html(''); $('#past_log_show').show(); $('#past_log_update').hide()"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+								</div>
+							</div>
+						</div>
+						<br />
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>个人史：</strong></label>
+							<div class="col-md-8">
+								<div id="person_log_show">
+									<p id="person_log"></p>
+									<a id="person_log_edit" onclick="$('#person_log_show').hide(); $('#person_log_update').show()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+								</div>
+								
+								<div id="person_log_update" style="display:none;">
+									<textarea rows="3" id="input_person_log" class="form-control" placeholder="既往病史" aria-describedby="sizing-addon1"></textarea>
+									<a id="person_log_confirm" onclick="$('#person_log').html($('#input_person_log').val()); $('#person_log_show').show(); $('#person_log_update').hide()"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="person_log_cancel" onclick=" $('#person_log_show').show(); $('#person_log_update').hide()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="person_log_cancel" onclick="$('#input_person_log').val(''); $('#person_log').html(''); $('#person_log_show').show(); $('#person_log_update').hide()"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+								</div>
+							</div>
+						</div>
+						<br />
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>家族史：</strong></label>
+							<div class="col-md-8">
+								<div id="family_log_show">
+									<p id="family_log"></p>
+									<a id="family_log_edit" onclick="$('#family_log_show').hide(); $('#family_log_update').show()"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+								</div>
+								
+								<div id="family_log_update" style="display:none;">
+									<textarea rows="3" id="input_family_log" class="form-control" placeholder="既往病史" aria-describedby="sizing-addon1"></textarea>
+									<a id="family_log_confirm" onclick="$('#family_log').html($('#input_family_log').val()); $('#family_log_show').show(); $('#family_log_update').hide()"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="family_log_cancel" onclick=" $('#family_log_show').show(); $('#family_log_update').hide()"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+									&nbsp;&nbsp;&nbsp;&nbsp;
+									<a id="family_log_cancel" onclick="$('#input_family_log').val(''); $('#family_log').html(''); $('#family_log_show').show(); $('#family_log_update').hide()"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				<br />
+				<div id="" class="bs-docs-section">
+					<div id="" class="form-horizontal">
+						<h4 id="symptom_section" class="page-header">初步检查</h4>
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>症状：</strong></label>
+							<div class="tagsinput-primary col-md-8">
+								<input id="symptoms" class="tagsinput" data-role="tagsinput" value="" />
+							</div>
+						</div>
+						<div class="control-group row">
+							<label class="control-label col-md-2"> </label>
+							<div id="symptom_options" class="tagsinput-primary col-md-8">
+
+							</div>
+						</div>
+						<script type="text/javascript">
+							$.getJSON("ajax/get_states/", function(json){
+								data_rec['states'] = json['states'];
+								states = json['states'];
+								for (var i = 0; i < states.length; ++i){
+									$('#symptom_options').append(
+										"<div class='col-md-2'><a class='btn btn-primary' role='button' onclick=\"$('#symptoms').tagsinput('add', '" + states[i] + "');\">" + states[i] + "</a></div>"
+									);
+								}
+							});
+						</script>
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>初步检查结果：</strong></label>
+							<div class="tagsinput-primary col-md-8">
+								<p id="basic_check_result">
+									
+								</p>
+								<a onclick="send_ms_checks();" data-toggle="modal" data-target="#choose_module_modal"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="bs-docs-section">
+					<h4 id="" class="page-header">进一步检查</h4>
+				</div>
+			</div>
+		</div>
+	</div>	
+</div>
+
+<!-- basic info Modal -->
+<div class="modal fade" id="basic_info_modal" tabindex="-1" role="dialog" aria-labelledby="basic_info_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+	<div class="modal-content">
+	  <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="basic_info_modal_label">基本信息</h4>
+	  </div>
+	  <div class="modal-body" id="basic_info_modal_body">
+		<div>
+			<form class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label col-sm-2" for="input_name">姓名</label>
+					<div class="col-sm-10">
+						<input id="input_name" class="form-control" type="text" placeholder="输入姓名" class="input-large" />
+					</div>
+				</div>
+				<br />
+				<br />
+				<div class="control-group">
+					<label class="control-label col-sm-2" for="input_gender">性别</label>
+					<div class="col-sm-10">
+						<label class="radio" onclick="$('#gender_male').attr('checked', true);$('#gender_female').attr('checked', false);">
+							<input id="gender_male" type="radio" value="男" name="input_gender" />
+								男
+						</label>
+						<label class="radio checked" onclick="$('#gender_female').attr('checked', true);$('#gender_male').attr('checked', false);">
+							<input id="gender_female" type="radio" value="女" name="input_gender" checked="checked" />
+								女
+						</label>
+					</div>
+				</div>
+				<br />
+				<br />
+				<div class="control-group">
+					<label class="control-label col-sm-2" for="input_age">年龄</label>
+					<div class="col-sm-10">
+						<select id="input_age" class="form-control select select-primary select-block mbl">
+  						</select>
+  						<script type="text/javascript">
+							for (var i = 0; i < 100; ++i){
+    							$('#input_age').append("<option value=" + i + ">" + i + "</option>");
+    						}
+    					</script>
+					</div>
+				</div>
+				<br />
+				<br />
+				<div class="control-group">
+					<label class="control-label col-sm-2" for="input_office">科室</label>
+					<div class="col-sm-10">
+						<input id="input_office" class="form-control" type="text" placeholder="输入科室" class="input-large" />
+					</div>
+				</div>
+				<br />
+				<br />
+				<div class="control-group">
+					<label class="control-label col-sm-2" for="input_id">ID号</label>
+					<div class="col-sm-10">
+						<input id="input_id" class="form-control" type="text" placeholder="输入ID号" class="input-large" />
+					</div>
+				</div>
+				<br />
+				<br />
+			</form>
+		</div>
+	  </div>
+	  <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		<button type="button" class="btn btn-primary" onclick="update_basic_info();">保存</button>
+	  </div>
+	</div>
+  </div>
+</div>
+
+<!-- choosle possible module Modal -->
+<div class="modal fade" id="choose_module_modal" tabindex="-1" role="dialog" aria-labelledby="choose_module_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="choose_module_modal_label">初步诊断结果</h4>
+      </div>
+      <div class="modal-body" id="choose_module_modal_body">
+      	<div class="row">
+	        <div class="input-group col-md-6 col-md-offset-3">
+	  			<input type="text" class="form-control" placeholder="Search" id="search_module">
+	  			<span class="input-group-btn">
+	    			<button type="submit" class="btn"><span class="fui-search"></span></button>
+	  			</span>
+			</div>
+		</div>
+		<br />
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<strong>预测的结果</strong>
+				<ul id="predict_result">
+					
+				</ul>
+				<strong>搜索的结果</strong>
+				<ul id="search_result">
+					
+				</ul>
+			</div>
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		<button type="button" class="btn btn-primary" onclick="$('#basic_check_result').html($('#search_module').val());" data-dismiss="modal">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+	$(':checkbox').radiocheck();
+	$(':radio').radiocheck('check');
+	$("select").select2({dropdownCssClass: 'dropdown-inverse'});
+	$(".tagsinput").tagsinput();
+
+</script>
+
+{% endblock %}
