@@ -14,7 +14,7 @@
         <!-- // <script src="/static/flat_ui/dist/js/flat-ui.min.js"></script> -->
 		{% block head %}{% endblock %}
 	</head>
-	<body style="padding:0px; background-color:#f4f6f4">
+	<body {% block body %}style="padding:0px; background-color:#f4f6f4"{% endblock %}>
 		{% block navigation%}
 			<nav class="navbar navbar-inverse" role="navigation">
 				<div class="container-fluid">

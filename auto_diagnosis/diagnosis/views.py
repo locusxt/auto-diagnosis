@@ -8,14 +8,23 @@ from django.http import HttpResponse
 
 # Create your views here.
 def start_diagnosis(request):
-    return render_to_response('diagnosis.html')
+	return render_to_response('diagnosis_2.html')
 
 def get_states(request):
-    response_data = {'states':['发烧', '头痛', '咳嗽', '头晕', '乏力', '背痛']}
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+	"""进行模块时需要进行勾选的症状
+
+	返回类似{'states':['发烧', '头痛', '咳嗽', '头晕', '乏力', '背痛']}的json格式数据
+	"""
+	response_data = {'states':['发烧', '头痛', '咳嗽', '头晕', '乏力', '背痛']}
+	return HttpResponse(json.dumps(response_data), content_type="application/json")
 
 @csrf_exempt
 def get_modules(request):
+	"""根据选择的症状推荐模块
+
+	从request中解析出类似于{u'check': [1, 0, 0, 0, 1, 0]}的症状选择结果
+	返回类似于{'modules' : ['呼吸系统', '消化系统', '血液系统']}的json格式数据
+	"""
 	if not request.is_ajax():
 		return HttpResponse("Not Ajax")
 	if request.method != 'POST':
@@ -28,6 +37,11 @@ def get_modules(request):
 
 @csrf_exempt
 def get_module_questions(request):
+	"""根据选择的模块，返回模块对应的问题
+
+	从request中解析出类似于{'module':'xxxx'}的json格式数据
+	返回{'questions' : []}
+	"""
 	if not request.is_ajax():
 		return HttpResponse("Not Ajax")
 	if request.method != 'POST':
