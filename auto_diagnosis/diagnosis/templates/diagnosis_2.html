@@ -35,18 +35,9 @@
 	function get_ms_states(){
 		$.getJSON("ajax/get_states/", function(json){
 			data_rec['states'] = json['states'];
-			// ms_res['check'] = [];
-			// for (var i = 0; i < json['states'].length; i++){
-			// 	ms_res['check'].push(0);
-			// }
-			// //alert(json['name']);
-			// tmpl_render_html('#ms_tmpl', '#main', data_rec);
 		});
 	}
 
-	function switch_ms_check(id){
-		ms_res['check'][id] = 1 - ms_res['check'][id];
-	}
 
 	function send_ms_checks(){
 		$('#predict_result').html('Loading...');
@@ -64,12 +55,54 @@
 						"<li><a onclick=\"$('#search_module').val('" + modules[i] + "');\">" + modules[i] + "</a></li>"
 					);
 				}
-				// tmpl_render_html('#module_tmpl', '#main', data_rec);
-				//$(':radio').radiocheck();
 		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
+	}
+
+	function update_recommend_tests(module_name){
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_module_questions/",
+		  data: JSON.stringify ({"module" : module_name}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['questions'] = d['questions']; 
+				questions = d['questions'];
+				$('#recommend_tests').html('');
+				for (var i = 0; i < questions.length; ++i){
+					p = $("<p></p>").text(questions[i]['question']);
+
+					select = $("<select></select>").attr({
+						"id" : "q" + i,
+						"class" : " select select-primary select-block mbl"
+					});
+					options = questions[i]['options'];
+					for (var j = 0; j < options.length; ++j){
+						$(select).append("<option value=" + j + ">" + options[j] + "</option>")
+					}
+					li = $("<li></li>").append(p, select);
+
+					$('#recommend_tests').append(li);
+					$("select").select2({dropdownCssClass: 'dropdown-inverse'});
+				}
+		  },
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function add_custom_test(test_name){
+		p = $("<p></p>").text(test_name);
+		input = $("<input></input>").attr({
+			"id":test_name + "_res",
+			"type":"text",
+			"placeholder":"输入检查结果",
+			"class":"input-large form-control"
+		});
+		li = $("<li></li>").append(p, input);
+		$('#custom_tests').append(li);
 	}
 
 	function choose_module(module_id){
@@ -91,10 +124,6 @@
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
-	}
-
-	function switch_option(question, option){
-		question_res['option'][question] = option;
 	}
 
 	function send_question_res(){
@@ -284,9 +313,9 @@
 					
 				</div>
 				<br />
-				<div id="" class="bs-docs-section">
-					<div id="" class="form-horizontal">
-						<h4 id="symptom_section" class="page-header">初步检查</h4>
+				<div id="symptom_section" class="bs-docs-section">
+					<div class="form-horizontal">
+						<h4 class="page-header">初步检查</h4>
 						<div class="control-group row">
 							<label class="control-label col-md-2"><strong>症状：</strong></label>
 							<div class="tagsinput-primary col-md-8">
@@ -321,8 +350,22 @@
 						</div>
 					</div>
 				</div>
-				<div class="bs-docs-section">
-					<h4 id="" class="page-header">进一步检查</h4>
+				<div id="detail_diagnosis_section" class="bs-docs-section">
+					<h4 class="page-header">进一步检查</h4>
+					<div class="row col-md-offset-1">
+						<strong>推荐的诊断项目</strong>
+						<ul id="recommend_tests">
+							
+						</ul>
+						<strong>自定义诊断项目</strong>
+						<ul id="custom_tests">
+							
+						</ul>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_tests_add" onclick="" data-toggle="modal" data-target="#add_custom_test_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_tests_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -432,12 +475,41 @@
 				<ul id="search_result">
 					
 				</ul>
+
 			</div>
 		</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-		<button type="button" class="btn btn-primary" onclick="$('#basic_check_result').html($('#search_module').val());" data-dismiss="modal">确认</button>
+		<button type="button" class="btn btn-primary" onclick="var choosed = $('#search_module').val(); $('#basic_check_result').html(choosed); update_recommend_tests(choosed);" data-dismiss="modal">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- add custom test Modal -->
+<div class="modal fade" id="add_custom_test_modal" tabindex="-1" role="dialog" aria-labelledby="add_custom_test_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="add_custom_test_modal_label">增加自定义检查</h4>
+      </div>
+      <div class="modal-body" id="add_custom_test_modal_body">
+        <form class="form-horizontal">
+        	<div class="control-group">
+        		<label class="control-label col-sm-2" for="input_test_name">检查项目</label>
+        		<div class="col-sm-10">
+					<input id="input_test_name" class="form-control" type="text" placeholder="输入检查项目" class="input-large" />
+				</div>
+				<br />
+				<br />
+        	</div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		<button type="button" class="btn btn-primary" onclick="add_custom_test($('#input_test_name').val());" data-dismiss="modal">确认</button>
       </div>
     </div>
   </div>
