@@ -105,6 +105,50 @@
 		$('#custom_tests').append(li);
 	}
 
+	function update_recommend_auxiliarys(){
+		$.ajax({
+		  type: 'POST',
+		  url: "ajax/get_disease_questions/",
+		  data: JSON.stringify ({}), // or JSON.stringify ({name: 'jonas'}),
+		  complete: function(d) { 
+				d = eval("("+d.responseText+")"); 
+				data_rec['adv_questions'] = d['adv_questions']; 
+				adv_questions = d['adv_questions'];
+				$('#recommend_auxiliarys').html('');
+				for (var i = 0; i < adv_questions.length; ++i){
+					p = $("<p></p>").text(adv_questions[i]['question']);
+
+					select = $("<select></select>").attr({
+						"id" : "advq" + i,
+						"class" : " select select-primary select-block mbl"
+					});
+					options = adv_questions[i]['options'];
+					for (var j = 0; j < options.length; ++j){
+						$(select).append("<option value=" + j + ">" + options[j] + "</option>")
+					}
+					li = $("<li></li>").append(p, select);
+
+					$('#recommend_auxiliarys').append(li);
+					$("select").select2({dropdownCssClass: 'dropdown-inverse'});
+				}  
+			},
+		  contentType: "application/json",
+		  dataType: 'text'
+		});
+	}
+
+	function add_custom_auxiliary(auxiliary_name){
+		p = $("<p></p>").text(auxiliary_name);
+		input = $("<input></input>").attr({
+			"id":auxiliary_name + "_res",
+			"type":"text",
+			"placeholder":"输入检查结果",
+			"class":"input-large form-control"
+		});
+		li = $("<li></li>").append(p, input);
+		$('#custom_auxiliarys').append(li);
+	}
+
 	function choose_module(module_id){
 		choosed_module = data_rec['modules'][module_id];
 		$.ajax({
@@ -350,6 +394,7 @@
 						</div>
 					</div>
 				</div>
+				<br />
 				<div id="detail_diagnosis_section" class="bs-docs-section">
 					<h4 class="page-header">进一步检查</h4>
 					<div class="row col-md-offset-1">
@@ -365,6 +410,34 @@
 						<a id="custom_tests_add" onclick="" data-toggle="modal" data-target="#add_custom_test_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
 						&nbsp;&nbsp;&nbsp;&nbsp;
 						<a id="custom_tests_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+					</div>
+					<br />
+					<br />
+					<div class="row col-md-offset-1">
+						<p><a onclick="update_recommend_auxiliarys();" class="btn btn-primary btn-lg" onclick="" role="button">确认</a></p>
+					</div>
+				</div>
+				<br />
+				<div id="auxiliary_section" class="bs-docs-section">
+					<h4 class="page-header">辅助检查</h4>
+					<div class="row col-md-offset-1">
+						<strong>推荐的辅助检查</strong>
+						<ul id="recommend_auxiliarys">
+							
+						</ul>
+						<strong>自定义辅助检查项目</strong>
+						<ul id="custom_auxiliarys">
+							
+						</ul>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_auxiliarys_add" onclick="" data-toggle="modal" data-target="#add_custom_auxiliary_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_auxiliarys_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+					</div>
+					<br />
+					<br />
+					<div class="row col-md-offset-1">
+						<p><a class="btn btn-primary btn-lg" onclick="" role="button">确认</a></p>
 					</div>
 				</div>
 			</div>
@@ -510,6 +583,34 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
 		<button type="button" class="btn btn-primary" onclick="add_custom_test($('#input_test_name').val());" data-dismiss="modal">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- add custom auxiliary Modal -->
+<div class="modal fade" id="add_custom_auxiliary_modal" tabindex="-1" role="dialog" aria-labelledby="add_custom_auxiliary_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="add_custom_auxiliary_modal_label">增加自定义检查</h4>
+      </div>
+      <div class="modal-body" id="add_custom_auxiliary_modal_body">
+        <form class="form-horizontal">
+        	<div class="control-group">
+        		<label class="control-label col-sm-2" for="input_auxiliary_name">检查项目</label>
+        		<div class="col-sm-10">
+					<input id="input_auxiliary_name" class="form-control" type="text" placeholder="输入检查项目" class="input-large" />
+				</div>
+				<br />
+				<br />
+        	</div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		<button type="button" class="btn btn-primary" onclick="add_custom_auxiliary($('#input_auxiliary_name').val());" data-dismiss="modal">确认</button>
       </div>
     </div>
   </div>
