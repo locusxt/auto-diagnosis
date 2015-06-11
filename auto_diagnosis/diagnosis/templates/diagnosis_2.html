@@ -2,7 +2,7 @@
 
 {% block title %} 在线问诊 {% endblock %}
 
-{% block body %}style="padding:0px; background-color:#f4f6f4"{% endblock %}
+{% block body %}style="padding:0px; background-color:#f4f6f4;" data-spy="scroll" data-target="#navbar-example"{% endblock %}
 
 {% block head%}
 <script src="/static/basic_js/jsrender.min.js"></script>
@@ -149,110 +149,69 @@
 		$('#custom_auxiliarys').append(li);
 	}
 
-	function choose_module(module_id){
-		choosed_module = data_rec['modules'][module_id];
-		$.ajax({
-		  type: 'POST',
-		  url: "ajax/get_module_questions/",
-		  data: JSON.stringify ({"module" : choosed_module}), // or JSON.stringify ({name: 'jonas'}),
-		  complete: function(d) { 
-				d = eval("("+d.responseText+")"); 
-				data_rec['questions'] = d['questions']; 
-				question_res['option'] = [];
-				for (var i = 0; i < d['questions'].length; i++){
-					question_res['option'].push(-1);
-				}
-				tmpl_render_html('#question_tmpl', '#main', data_rec);
-				
-		  },
-		  contentType: "application/json",
-		  dataType: 'text'
-		});
-	}
 
-	function send_question_res(){
-		for (var i = 0; i < question_res['option'].length; i++){
-			if (question_res['option'][i] == -1){
-				alert("请完成所有题目，再提交。");
-				return;
-			}
-		}
-		question_res['module'] = choosed_module;
+	function update_possible_diseases(){
 		$.ajax({
 		  type: 'POST',
 		  url: "ajax/get_res/",
-		  data: JSON.stringify (question_res), // or JSON.stringify ({name: 'jonas'}),
+		  data: JSON.stringify ({}), // or JSON.stringify ({name: 'jonas'}),
 		  complete: function(d) { 
 				d = eval("("+d.responseText+")"); 
 				data_rec['diseases'] = d['diseases']; 
-				tmpl_render_html('#res_tmpl', '#main', data_rec);
+				diseases = d['diseases'];
+				$('#possible_diseases').html('');
+				for (var i = 0; i < diseases.length; ++i){
+					button = $("<button></button>").attr({
+						"type":"button",
+						"class":"btn btn-primary",
+						"onclick":"choose_disease('" + diseases[i]['name'] + "');"
+					});
+					text = diseases[i]['name'] + "<span class='badge'>" + diseases[i]['prob']*100 + "%</span>";
+					$(button).html(text);
+					$('#possible_diseases').append(button);
+					$('#possible_diseases').append("&nbsp;&nbsp;");
+				}
 		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
 	}
 
-	function change_modal(disease_name){
-		document.getElementById('myModalLabel').innerHTML=disease_name;
-		document.getElementById('myModalBody').innerHTML='Loading...';
-		$.ajax({
-		  type: 'POST',
-		  url: "ajax/get_details/",
-		  data: JSON.stringify ({'disease':disease_name}), // or JSON.stringify ({name: 'jonas'}),
-		  complete: function(d) { 
-				d = eval("("+d.responseText+")"); 
-				document.getElementById('myModalBody').innerHTML=d['details'];		  
-			},
-		  contentType: "application/json",
-		  dataType: 'text'
-		});
-	}
-
-	function adv_diagnosis(disease_name){
-		choosed_disease = disease_name;
-		$.ajax({
-		  type: 'POST',
-		  url: "ajax/get_disease_questions/",
-		  data: JSON.stringify ({'module':question_res['module'], 'option':question_res['option'], 'disease': choosed_disease}), // or JSON.stringify ({name: 'jonas'}),
-		  complete: function(d) { 
-				d = eval("("+d.responseText+")"); 
-				data_rec['adv_questions'] = d['adv_questions']; 
-				adv_question_res['option'] = [];
-				for (var i = 0; i < d['adv_questions'].length; i++){
-					adv_question_res['option'].push(-1);
-				}
-				tmpl_render_html('#adv_question_tmpl', '#main', data_rec);	  
-			},
-		  contentType: "application/json",
-		  dataType: 'text'
-		});
-	}
-
-	function adv_switch_option(question, option){
-		adv_question_res['option'][question] = option;
-	}
-
-	function send_adv_question_res(){
-		for (var i = 0; i < adv_question_res['option'].length; i++){
-			if (adv_question_res['option'][i] == -1){
-				alert("请完成所有题目，再提交。");
-				return;
-			}
-		}
-		adv_question_res['disease'] = choosed_disease;
+	function choose_disease(disease_name){
+		$('#input_disease_name').val(disease_name);
 		$.ajax({
 		  type: 'POST',
 		  url: "ajax/get_treatment/",
-		  data: JSON.stringify (adv_question_res), // or JSON.stringify ({name: 'jonas'}),
+		  data: JSON.stringify ({}), // or JSON.stringify ({name: 'jonas'}),
 		  complete: function(d) { 
 				d = eval("("+d.responseText+")"); 
 				data_rec['treatment'] = d['treatment']; 
-				document.getElementById('diagnosis_res').value=d['treatment'];
+				treatment = d['treatment'];
+				$('#input_prescribe').val(treatment);
+				$('#input_treatment').val(treatment);
+				$('#input_entrust').val(treatment);
 		  },
 		  contentType: "application/json",
 		  dataType: 'text'
 		});
 	}
+
+	function update_result(){
+		disease_name = $('#input_disease_name').val();
+		prescribe = $('#input_prescribe').val();
+		treatment = $('#input_treatment').val();
+		entrust = $('#input_entrust').val();
+
+		$('#disease_name').html(disease_name);
+		$('#prescribe').html(prescribe);
+		$('#treatment').html(treatment);
+		$('#entrust').html(entrust);
+	}
+
+	
+	
+
+	
 
 	/*
 	 * 该函数用于更新用户基本信息的显示
@@ -279,7 +238,7 @@
 <div class="container bs-docs-container">
 	<div class="row">
 		<div class="panel panel-default col-md-9">
-			<div class="panel-body" role="main">
+			<div class="panel-body" role="main" id="top">
 				<div id="basic_info_section" class="bs-docs-section">
 					<h4 id="basic_info_title" class="page-header">基本信息</h4>
 					<div>
@@ -403,13 +362,13 @@
 							
 						</ul>
 						<strong>自定义诊断项目</strong>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_tests_add" onclick="" data-toggle="modal" data-target="#add_custom_test_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+						&nbsp;&nbsp;
+						<a id="custom_tests_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
 						<ul id="custom_tests">
 							
 						</ul>
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<a id="custom_tests_add" onclick="" data-toggle="modal" data-target="#add_custom_test_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<a id="custom_tests_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
 					</div>
 					<br />
 					<br />
@@ -426,13 +385,61 @@
 							
 						</ul>
 						<strong>自定义辅助检查项目</strong>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+						<a id="custom_auxiliarys_add" onclick="" data-toggle="modal" data-target="#add_custom_auxiliary_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+						&nbsp;&nbsp;
+						<a id="custom_auxiliarys_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
 						<ul id="custom_auxiliarys">
 							
 						</ul>
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<a id="custom_auxiliarys_add" onclick="" data-toggle="modal" data-target="#add_custom_auxiliary_modal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
-						&nbsp;&nbsp;&nbsp;&nbsp;
-						<a id="custom_auxiliarys_clear" onclick=""><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+						
+					</div>
+					<br />
+					<br />
+					<div class="row col-md-offset-1">
+						<p><a class="btn btn-primary btn-lg" onclick="" role="button">确认</a></p>
+					</div>
+				</div>
+				<br />
+				<div id="diagnosis_result" class="bs-docs-section">
+					<h4 class="page-header">处理意见&nbsp;&nbsp;<small><a href="#" onclick="update_possible_diseases();" data-toggle="modal" data-target="#result_modal"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a></small></h4>
+					<div class="form-horizontal">
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>病名：</strong></label>
+							<div class="col-md-8">
+								<p id="disease_name">
+									
+								</p>
+							</div>
+						</div>
+						<br />
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>处方：</strong></label>
+							<div class="col-md-8">
+								<p id="prescribe">
+									
+								</p>
+							</div>
+						</div>
+						<br />
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>治疗手段：</strong></label>
+							<div class="col-md-8">
+								<p id="treatment">
+									
+								</p>
+							</div>
+						</div>
+						<br />
+						<div class="control-group row">
+							<label class="control-label col-md-2"><strong>嘱托：</strong></label>
+							<div class="col-md-8">
+								<p id="entrust">
+									
+								</p>
+							</div>
+						</div>
+
 					</div>
 					<br />
 					<br />
@@ -442,8 +449,34 @@
 				</div>
 			</div>
 		</div>
+		<div class="col-md-3" role="complementary">
+			<nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm" id="navbar-example" data-spy="affix" data-offset-top="20">
+				<ul class="nav bs-docs-sidenav">
+					<li>
+						<a href="#basic_info_section">基本信息</a>
+					</li>
+					<li>
+						<a href="#symptom_section">初步检查</a>
+					</li>
+					<li>
+						<a href="#detail_diagnosis_section">进一步诊断</a>
+					</li>
+					<li>
+						<a href="#auxiliary_section">辅助检查</a>
+					</li>
+					<li>
+						<a href="#diagnosis_result">处理意见</a>
+					</li>
+					<li>
+						<a href="#top" class="back-to-top">返回顶部</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
 	</div>	
 </div>
+
+
 
 <!-- basic info Modal -->
 <div class="modal fade" id="basic_info_modal" tabindex="-1" role="dialog" aria-labelledby="basic_info_modal_label" aria-hidden="true">
@@ -514,7 +547,7 @@
 	  </div>
 	  <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-		<button type="button" class="btn btn-primary" onclick="update_basic_info();">保存</button>
+		<button type="button" class="btn btn-primary" onclick="update_basic_info();" data-dismiss="modal">保存</button>
 	  </div>
 	</div>
   </div>
@@ -615,6 +648,64 @@
     </div>
   </div>
 </div>
+
+<!-- result Modal -->
+<div class="modal fade" id="result_modal" tabindex="-1" role="dialog" aria-labelledby="result_modal_label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="result_modal_label">处理意见</h4>
+      </div>
+      <div class="modal-body" id="result_modal_body">
+        <div class="form-horizontal">
+			<div class="control-group row">
+				<label class="control-label col-md-2"><strong>病名：</strong></label>
+				<div class="col-md-8">
+					<input id="input_disease_name" class="form-control" type="text" placeholder="输入病名" class="input-large" />
+				</div>
+			</div>
+			<br />
+			<div class="control-group row">
+				<div class="col-md-8 col-md-offset-2" id="possible_diseases">
+					<button class="btn btn-primary" type="button">
+  						Messages <span class="badge">90%</span>
+					</button>
+				</div>
+			</div>
+			<br />
+			<div class="control-group row">
+				<label class="control-label col-md-2"><strong>处方：</strong></label>
+				<div class="col-md-8">
+					<textarea rows="3" id="input_prescribe" class="form-control" placeholder="处方" aria-describedby="sizing-addon1"></textarea>
+				</div>
+			</div>
+			<br />
+			<div class="control-group row">
+				<label class="control-label col-md-2"><strong>治疗：</strong></label>
+				<div class="col-md-8">
+					<textarea rows="3" id="input_treatment" class="form-control" placeholder="治疗方式" aria-describedby="sizing-addon1"></textarea>
+				</div>
+			</div>
+			<br />
+			<div class="control-group row">
+				<label class="control-label col-md-2"><strong>嘱托：</strong></label>
+				<div class="col-md-8">
+					<textarea rows="3" id="input_entrust" class="form-control" placeholder="嘱托" aria-describedby="sizing-addon1"></textarea>
+				</div>
+			</div>
+
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		<button type="button" class="btn btn-primary" onclick="update_result();" data-dismiss="modal">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "footer.html" %}
 
 <script type="text/javascript">
 	$(':checkbox').radiocheck();
